@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        code { background-color: #f4f4f4; padding: 3px 6px; }
+        .endpoint { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>API Documentation</h1>
+    <p>This documentation provides information about the available API endpoints in the project.</p>
+
+    <div class="endpoint">
+        <h2>GET /api</h2>
+        <p>Returns a welcome message indicating that the API server is running.</p>
+        <h3>Response</h3>
+        <pre>
+{
+    "message": "Welcome to the API server"
+}
+        </pre>
+    </div>
+
+    <div class="endpoint">
+        <h2>GET /api/checkstatus</h2>
+        <p>Checks the status of a specified URL, with the option to bypass expired SSL certificates.</p>
+        <h3>Query Parameters</h3>
+        <ul>
+            <li><code>url</code> (required): The URL to check status for.</li>
+        </ul>
+        <h3>Response</h3>
+        <pre>
+{
+    "url": "https://example.com",
+    "status": 200,
+    "statusText": "OK",
+    "message": "Fetched data successfully with valid certificate"
+}
+        </pre>
+        <h3>Note:</h3>
+        <p>If the certificate is expired, the response will indicate that the data was fetched despite the expired certificate:</p>
+        <pre>
+{
+    "url": "https://example.com",
+    "status": 200,
+    "statusText": "OK",
+    "message": "Fetched data despite expired certificate",
+    "reason": "Certificate has expired"
+}
+        </pre>
+    </div>
+</body>
+</html>
