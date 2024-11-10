@@ -31,7 +31,6 @@ export default async function handler(req, res) {
         });
     } catch (error) {
         if (error.message.includes("certificate has expired")) {
-            // Retry without SSL verification if the certificate has expired
             try {
                 const startTime = Date.now();
                 const agent = new https.Agent({ rejectUnauthorized: false });
@@ -40,7 +39,7 @@ export default async function handler(req, res) {
 
                 res.status(200).json({
                     success: true,
-                    message: "Checked status despite expired certificate",
+                    message: "Sertifikat muddati tugapti",
                     requestedUrl: `https://${url}`,
                     status: insecureResponse.status,
                     statusText: insecureResponse.statusText,
