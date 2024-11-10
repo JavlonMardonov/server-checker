@@ -23,14 +23,14 @@ export default async function handler(req, res) {
         
         res.status(200).json({
             success: true,
-            message: "Checked status successfully with valid certificate",
+            message: "Sertifkat o'z kuchida",
             requestedUrl: `https://${url}`,
             status: response.status,
             statusText: response.statusText,
             responseTime: `${endTime - startTime}ms`
         });
     } catch (error) {
-        if (error.message.includes("certificate has expired")) {
+        if (error.message.includes("Sertifikat muddati tugapti")) {
             try {
                 const startTime = Date.now();
                 const agent = new https.Agent({ rejectUnauthorized: false });
@@ -44,12 +44,12 @@ export default async function handler(req, res) {
                     status: insecureResponse.status,
                     statusText: insecureResponse.statusText,
                     responseTime: `${endTime - startTime}ms`,
-                    reason: "Certificate has expired"
+                    reason: "Sertifikat muddati tugapti"
                 });
             } catch (insecureError) {
                 res.status(500).json({
                     success: false,
-                    message: "Certificate has expired, and status check failed with SSL bypass",
+                    message: "Sertifikat muddati tugapti",
                     requestedUrl: `https://${url}`,
                     status: null,
                     statusText: null,
@@ -58,10 +58,9 @@ export default async function handler(req, res) {
                 });
             }
         } else {
-            // Other errors
             res.status(500).json({
                 success: false,
-                message: "An error occurred while checking the URL",
+                message: "Bot urlda hatolik",
                 requestedUrl: `https://${url}`,
                 status: null,
                 statusText: null,
