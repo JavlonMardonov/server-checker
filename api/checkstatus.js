@@ -1,54 +1,74 @@
 import fetch from 'node-fetch';
+import https from 'https';
 
 export default async function handler(req, res) {
     const { url } = req.query;
 
     if (!url) {
-        return res.status(400).json({ error: 'URL parameter is required' });
+        return res.status(400).json({
+            success: false,
+            message: "URL parameter is required",
+            requestedUrl: null,
+            status: null,
+            statusText: null,
+            responseTime: null
+        });
     }
 
     try {
+        // Attempt to check status with SSL verification
+        const startTime = Date.now();
         const response = await fetch(`https://${url}`);
-        const status = response.status;
-        const statusText = response.statusText;
-
-        let message;
-        switch (status) {
-            case 200:
-                message = "Request was successful (OK)";
-                break;
-            case 201:
-                message = "Resource was created successfully";
-                break;
-            case 202:
-                message = "Request accepted and is being processed";
-                break;
-            case 204:
-                message = "Request was successful with no content to return";
-                break;
-            case 301:
-                message = "Resource has moved permanently";
-                break;
-            case 302:
-                message = "Resource found but temporarily moved";
-                break;
-            case 304:
-                message = "Resource has not been modified";
-                break;
-            default:
-                message = "Received a positive status code";
-        }
-
+        const endTime = Date.now();
+        
         res.status(200).json({
-            url: `https://${url}`,
-            status,
-            statusText,
-            message
+            success: true,
+            message: "Checked status successfully with valid certificate",
+            requestedUrl: `https://${url}`,
+            status: response.status,
+            statusText: response.statusText,
+            responseTime: `${endTime - startTime}ms`
         });
     } catch (error) {
-        res.status(500).json({
-            url: `https://${url}`,
-            error: error.message,
-        });
+        if (error.message.includes("certificate has expired")) {
+            // Retry without SSL verification if the certificate has expired
+            try {
+                const startTime = Date.now();
+                const agent = new https.Agent({ rejectUnauthorized: false });
+                const insecureResponse = await fetch(`https://${url}`, { agent });
+                const endTime = Date.now();
+
+                res.status(200).json({
+                    success: true,
+                    message: "Checked status despite expired certificate",
+                    requestedUrl: `https://${url}`,
+                    status: insecureResponse.status,
+                    statusText: insecureResponse.statusText,
+                    responseTime: `${endTime - startTime}ms`,
+                    reason: "Certificate has expired"
+                });
+            } catch (insecureError) {
+                res.status(500).json({
+                    success: false,
+                    message: "Certificate has expired, and status check failed with SSL bypass",
+                    requestedUrl: `https://${url}`,
+                    status: null,
+                    statusText: null,
+                    responseTime: null,
+                    error: insecureError.message
+                });
+            }
+        } else {
+            // Other errors
+            res.status(500).json({
+                success: false,
+                message: "An error occurred while checking the URL",
+                requestedUrl: `https://${url}`,
+                status: null,
+                statusText: null,
+                responseTime: null,
+                error: error.message
+            });
+        }
     }
 }
